@@ -58,7 +58,25 @@ app.post("/service", async (req, res) => {
     }
 })
 
-
+// service get 
+app.get("/service", async(req,res)=>{
+    try {
+        const query = {};
+        const cursor = service.find(query)
+        const products = await cursor.toArray();
+        res.send({
+            success: true,
+            data: products,
+            message: "Successfully got the data",
+        });
+        
+    } catch (error) {
+        res.send({
+            success: false,
+            error: error.message,
+        });
+    }
+})
 
 
 
