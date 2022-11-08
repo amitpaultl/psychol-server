@@ -63,6 +63,26 @@ app.get("/service", async(req,res)=>{
     try {
         const query = {};
         const cursor = service.find(query)
+        const products = await cursor.limit(3).toArray();
+        res.send({
+            success: true,
+            data: products,
+            message: "Successfully got the data",
+        });
+        
+    } catch (error) {
+        res.send({
+            success: false,
+            error: error.message,
+        });
+    }
+})
+
+// all service get 
+app.get("/serviceall", async(req,res)=>{
+    try {
+        const query = {};
+        const cursor = service.find(query)
         const products = await cursor.toArray();
         res.send({
             success: true,
@@ -79,9 +99,26 @@ app.get("/service", async(req,res)=>{
 })
 
 
+// get id
 
-
-
+app.get(`/serviceall/:id`,async(req,res)=>{
+    try {
+        const id = req.params.id;
+        const query = {};
+        const services = await service.findOne(query);
+        res.send({
+            success: true,
+            data: services,
+            message: "Successfully got the data",
+        });
+        
+    } catch (error) {
+        res.send({
+            success: false,
+            error: error.message,
+        });
+    }
+})
 
 
 // running server
