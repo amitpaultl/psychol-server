@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 require('dotenv').config();
 const app = express();
@@ -34,6 +34,7 @@ dbConnent();
 
 // database name
 const service = client.db('psychologist').collection('service');
+const review = client.db('psychologist').collection('review');
 
 // service add server
 app.post("/service", async (req, res) => {
@@ -99,13 +100,13 @@ app.get("/serviceall", async(req,res)=>{
 })
 
 
+
 // get id
 
 app.get(`/serviceall/:id`,async(req,res)=>{
     try {
         const id = req.params.id;
-        const query = {};
-        const services = await service.findOne(query);
+        const services = await service.findOne({_id:ObjectId(id)});
         res.send({
             success: true,
             data: services,
@@ -121,10 +122,90 @@ app.get(`/serviceall/:id`,async(req,res)=>{
 })
 
 
+// review add server
+app.post("/review", async (req, res) => {
+    try {
+        const result = await review.insertOne(req.body);
+        if (result.insertedId) {
+            res.send({
+              success: true,
+              message: `Successfully created the ${req.body.title}`,
+            });
+        }else {
+            res.send({
+              success: false,
+              error: "Couldn't create the product",
+            });
+        }
+    } catch (error) {
+        res.send({
+          success: false,
+          error: error.message,
+        });
+    }
+})
+
+
+// review get 
+app.get("/review", async(req,res)=>{
+    try {
+        const email = req.query.email;
+        const query = {};
+        const cursor = review.find(query)   
+        const user = await cursor.toArray();
+        const products = user.filter((p) => p.email == email);
+        res.send({
+            success: true,
+            data: products,
+            message: "Successfully got the data",
+        });
+        
+    } catch (error) {
+        res.send({
+            success: false,
+            error: error.message,
+        });
+    }
+})
+
+// delete review
+
+app.delete('/review/:id', async(req,res)=>{
+    
+    try {
+        const id = req.params.id;
+        const query = {_id: ObjectId(id)}
+        
+        const result = await review.deleteOne(query);
+       
+        if(result.deletedCount){
+            res.send({
+                success : true,
+                message: `Successfully delete `
+            })
+            
+        }
+        
+    } catch (error) {
+        res.send({
+            success: false,
+            error: error.message,
+          });
+
+    }
+
+})
+
+// update review
+
+
+
 // running server
 app.get('/',(req,res)=>{
     res.send('Psychologist server is running')
 })
+
+
 
 
 // log listen
