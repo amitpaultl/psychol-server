@@ -168,6 +168,28 @@ app.get("/review", async(req,res)=>{
     }
 })
 
+// get id review
+
+app.get(`/review/:id`,async(req,res)=>{
+    try {
+        const id = req.params.id;
+        const services = await review.findOne({_id:ObjectId(id)});
+        res.send({
+            success: true,
+            data: services,
+            message: "Successfully got the data",
+        });
+        
+    } catch (error) {
+        res.send({
+            success: false,
+            error: error.message,
+        });
+    }
+})
+
+
+
 // delete review
 
 app.delete('/review/:id', async(req,res)=>{
@@ -197,6 +219,26 @@ app.delete('/review/:id', async(req,res)=>{
 })
 
 // update review
+app.patch(`/review/:id`,async (req,res)=>{
+    try {
+        const id = req.params.id;
+        const status = req.body;
+        // const update : {$set : status};
+        const filter = {_id : ObjectId(id)}
+        const result = await review.updateOne(filter, {$set : status})
+        res.send({
+            success : true,
+            data: result
+        })
+        
+    } catch (error) {
+        res.send({
+            success: false,
+            error: error.message
+
+        })
+    }
+})
 
 
 
