@@ -99,8 +99,6 @@ app.get("/serviceall", async(req,res)=>{
     }
 })
 
-
-
 // get id
 
 app.get(`/serviceall/:id`,async(req,res)=>{
@@ -168,6 +166,31 @@ app.get("/review", async(req,res)=>{
     }
 })
 
+// // all review  get 
+app.get("/reviewdis", async(req,res)=>{
+    try {
+        const id = req.query.id;
+        const query = {};
+        const cursor = review.find(query)   
+        const user = await cursor.toArray();
+        const products = user.filter((p) => p.product._id == id);
+
+        console.log(id);
+        console.log(products);
+        res.send({
+            success: true,
+            data: products,
+            message: "Successfully got the data",
+        });
+        
+    } catch (error) {
+        res.send({
+            success: false,
+            error: error.message,
+        });
+    }
+})
+
 // get id review
 
 app.get(`/review/:id`,async(req,res)=>{
@@ -187,7 +210,6 @@ app.get(`/review/:id`,async(req,res)=>{
         });
     }
 })
-
 
 
 // delete review
