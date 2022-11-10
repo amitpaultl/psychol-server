@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 require('dotenv').config();
@@ -21,10 +22,35 @@ app.use(express.json());
 const uri = `mongodb+srv://${process.env.USER}:${process.env.PASSWORD}@cluster0.acij04d.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+// jwt verifyJwt
+function verifyJwt(req,res,next){
+    const authHeader = req.headers.authorization;
+    if(!authHeader){
+        return res.send('unauthorize access')
+    }
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET,function(err, decoded){
+        if(err){
+           return res.send('unauthorize access')
+        }
+        req.decoded = decoded;
+        next()
+    });
+}
+
+// db connent
+
 const dbConnent = async () => {
     try {
         
         await client.connect();
+
+        app.post('/jwt',(req,res)=>{
+            const user = req.body;
+            console.log(user);
+            const token = jwt.sign(user , process.env.ACCESS_TOKEN_SECRET,{expiresIn:'7d'});
+            res.send({token})
+        })
 
     } catch (error) {
         console.log(error);
@@ -145,9 +171,16 @@ app.post("/review", async (req, res) => {
 
 
 // review get 
-app.get("/review", async(req,res)=>{
+app.get("/review",verifyJwt, async(req,res)=>{
     try {
+        // jwt 
         const email = req.query.email;
+        const decoded = req.decoded;
+        if(decoded.email !== email){
+            res.send({message:'unauthorize access'})
+        }
+
+        
         const query = {};
         const cursor = review.find(query)   
         const user = await cursor.toArray();
@@ -167,7 +200,7 @@ app.get("/review", async(req,res)=>{
 })
 
 // // all review  get 
-app.get("/reviewdis", async(req,res)=>{
+app.get("/reviewdis",  async(req,res)=>{
     try {
         const id = req.query.id;
         const query = {};
@@ -175,11 +208,12 @@ app.get("/reviewdis", async(req,res)=>{
         const user = await cursor.toArray();
         const products = user.filter((p) => p.product._id == id);
 
-        console.log(id);
-        console.log(products);
+        const revers = products.reverse()
+
+     
         res.send({
             success: true,
-            data: products,
+            data: revers,
             message: "Successfully got the data",
         });
         
